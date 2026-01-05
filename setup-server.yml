@@ -1,0 +1,7 @@
+- name: Servers Setup
+  hosts: all
+  become: true
+
+  roles:
+    - setup-x-ui
+    - setup-fail2ban

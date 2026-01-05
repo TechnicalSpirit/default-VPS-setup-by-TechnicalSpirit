@@ -1,0 +1,9 @@
+fail2ban_dir: /opt/fail2ban
+
+ssh_findtime: 2h
+ssh_maxretry: 2
+
+portscan_hitcount: 10
+portscan_seconds: 60
+
+timezone: Europe/Moscow

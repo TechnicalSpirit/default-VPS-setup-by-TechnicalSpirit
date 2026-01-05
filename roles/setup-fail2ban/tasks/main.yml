@@ -1,0 +1,68 @@
+- name: Install Docker
+  apt:
+    name:
+      - docker.io
+      - docker-compose
+    state: present
+    update_cache: true
+
+- name: Install rsyslog
+  apt:
+    name: rsyslog
+    state: present
+    update_cache: yes
+
+- name: Ensure rsyslog service is enabled and running
+  systemd:
+    name: rsyslog
+    state: started
+    enabled: yes
+
+- name: Ensure SSH auth logs are written to /var/log/auth.log
+  lineinfile:
+    path: /etc/rsyslog.d/50-default.conf
+    regexp: '^auth,authpriv.*'
+    line: 'auth,authpriv.*                 /var/log/auth.log'
+    create: yes
+    state: present
+  notify: Restart rsyslog
+
+- name: Create fail2ban directories
+  file:
+    path: "{{ fail2ban_dir }}/{{ item }}"
+    state: directory
+    mode: "0755"
+  loop:
+    - filter.d
+    - jail.d
+
+- name: Deploy docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ fail2ban_dir }}/docker-compose.yml"
+
+- name: Deploy sshd jail (built-in)
+  copy:
+    content: |
+      [sshd]
+      enabled = true
+      port = ssh
+    dest: "{{ fail2ban_dir }}/jail.d/00-sshd.conf"
+
+- name: Deploy portscan jail
+  template:
+    src: portscan.jail.conf.j2
+    dest: "{{ fail2ban_dir }}/jail.d/10-portscan.conf"
+
+- name: Deploy portscan filter
+  template:
+    src: portscan.conf.j2
+    dest: "{{ fail2ban_dir }}/filter.d/portscan.conf"
+
+- name: Install iptables portscan rules
+  script: iptables-portscan.sh
+
+- name: Start Fail2Ban container
+  command: docker-compose up -d
+  args:
+    chdir: "{{ fail2ban_dir }}"

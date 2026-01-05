@@ -1,0 +1,18 @@
+[DEFAULT]
+backend = auto
+ignoreip = 127.0.0.1/8 ::1
+bantime = -1
+findtime = 2h
+maxretry = 2
+
+[sshd]
+enabled = true
+port = ssh
+
+[portscan]
+enabled = true
+filter = portscan
+logpath = /var/log/kern.log
+maxretry = 1
+findtime = 1h
+bantime = -1

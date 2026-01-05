@@ -1,0 +1,28 @@
+
+- name: Install Docker
+  apt:
+    name:
+      - docker.io
+      - docker-compose
+    state: present
+    update_cache: yes
+
+- name: Create x-ui directories
+  file:
+    path: "{{ x_ui_dir }}/{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - data
+    - certificates
+    - logs
+
+- name: Deploy docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ x_ui_dir }}/docker-compose.yml"
+
+- name: Start x-ui container
+  command: docker-compose up -d
+  args:
+    chdir: "{{ x_ui_dir }}"
