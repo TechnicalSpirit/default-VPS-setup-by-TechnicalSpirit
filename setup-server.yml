@@ -1,7 +1,27 @@
-- name: Servers Setup
+# - name: Setup base protections
+#   hosts: all
+#   become: true
+#   roles:
+    # - setup-fail2ban
+
+# - name: Setup X-UI on VPN servers
+#   hosts: vpn-servers
+#   become: true
+#   roles:
+#     - setup-x-ui
+
+
+# - name: Setup X-UI on VPN servers
+#   hosts: ru-servers
+#   become: true
+#   roles:
+#     - setup-fail2ban
+
+
+- name: Setup protected connect
   hosts: all
   become: true
-
   roles:
-    - setup-x-ui
-    - setup-fail2ban
+    # - setup-openvpn
+    - setup-grafana
+    - setup-server-monitoring

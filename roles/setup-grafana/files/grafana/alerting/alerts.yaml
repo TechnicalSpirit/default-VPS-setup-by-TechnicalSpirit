@@ -1,0 +1,60 @@
+apiVersion: 1
+groups:
+  - name: node_alerts
+    folder: "Base-Server-Monitoring"
+    interval: 1m
+    rules:
+      - alert: HighCPU
+        uid: "high_cpu_usage"
+        title: "High CPU usage"
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 80
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High CPU usage on {{ $labels.instance }}"
+          description: "CPU usage is above 80% for 5 minutes."
+
+      - alert: LowMemory
+        uid: "low_memory"
+        title: "Low memory"
+        expr: (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes) * 100 < 20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low memory on {{ $labels.instance }}"
+          description: "Available memory is less than 20%."
+
+      - alert: LowDiskSpace
+        uid: "low_disk_space"
+        title: "Low disk space"
+        expr: (node_filesystem_avail_bytes{fstype!="tmpfs"} / node_filesystem_size_bytes{fstype!="tmpfs"}) * 100 < 15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Low disk space on {{ $labels.instance }}"
+          description: "Less than 15% of disk space is available."
+
+      - alert: HighNetworkIn
+        uid: "high_network_in"
+        title: "High network traffic in"
+        expr: rate(node_network_receive_bytes_total[5m]) > 10000000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High network traffic in on {{ $labels.instance }}"
+          description: "Incoming network traffic exceeds 10 MB/s."
+
+      - alert: HighNetworkOut
+        uid: "high_network_out"
+        title: "High network traffic out"
+        expr: rate(node_network_transmit_bytes_total[5m]) > 10000000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High network traffic out on {{ $labels.instance }}"
+          description: "Outgoing network traffic exceeds 10 MB/s."

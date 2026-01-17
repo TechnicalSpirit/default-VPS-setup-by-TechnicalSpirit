@@ -1,0 +1,71 @@
+---
+- name: Install Docker
+  apt:
+    name:
+      - docker.io
+      - docker-compose
+    state: present
+    update_cache: yes
+
+- name: Enable and start Docker
+  systemd:
+    name: docker
+    enabled: true
+    state: started
+
+- name: Create Grafana directory
+  file:
+    path: "{{ grafana_dir }}"
+    state: directory
+
+- name: Copy docker-compose.yml
+  template:
+    src: docker-compose.yml.j2
+    dest: "{{ grafana_dir }}/docker-compose.yml"
+
+- name: Create provisioning directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    mode: '0755'
+  loop:
+    - "{{ grafana_dir }}/provisioning/datasources"
+    - "{{ grafana_dir }}/dashboards"
+    - "{{ grafana_dir }}/provisioning/dashboards"
+    - "{{ grafana_dir }}/provisioning/notifiers"
+    - "{{ grafana_dir }}/provisioning/alerting"
+
+- name: Copy Prometheus datasource config
+  template:
+    src: grafana/provisioning/datasources/prometheus.yml.j2
+    dest: "{{ grafana_dir }}/provisioning/datasources/prometheus.yml"
+    mode: '0644'
+
+- name: Copy Telegram notifier config
+  template:
+    src: grafana/notifiers/telegram.yaml.j2
+    dest: "{{ grafana_dir }}/provisioning/notifiers/telegram.yaml"
+    mode: '0644'
+
+- name: Copy Grafana dashboards
+  copy:
+    src: grafana/dashboards/node_exporter.json
+    dest: "{{ grafana_dir }}/dashboards/node_exporter.json"
+    mode: '0644'
+
+- name: Copy Grafana dashboards - config
+  copy:
+    src: grafana/provisioning/dashboards/dashboard.yml
+    dest: "{{ grafana_dir }}/provisioning/dashboards/dashboard.yml"
+    mode: '0644'
+
+# - name: Copy Grafana alerts
+#   copy:
+#     src: grafana/alerting/alerts.yaml
+#     dest: "{{ grafana_dir }}/provisioning/alerting/alerts.yaml"
+#     mode: '0644'
+
+- name: Start Grafana
+  command: docker-compose up -d
+  args:
+    chdir: "{{ grafana_dir }}"
